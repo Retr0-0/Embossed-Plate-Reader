@@ -1,4 +1,4 @@
-# FE-Schrift License Plate Reader
+# FE-Schrift(Nepali Embossed) License Plate Reader
 
 Reads embossed license plates that use the FE-Schrift font (e.g. Nepali plates)
 by matching each character against rendered FE-Schrift glyph templates instead
