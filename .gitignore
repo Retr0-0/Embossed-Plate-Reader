@@ -1,7 +1,6 @@
+.venv/
 __pycache__/
 *.pyc
-.venv/
-venv/
-out.png
-*.egg-info/
-.vscode/
+imagesself/
+recognized/
+glyph_cnn.pt

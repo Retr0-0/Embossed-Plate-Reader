@@ -1,4 +1,6 @@
 opencv-python
 numpy
 pillow
-matplotlib
+pytesseract
+open-image-models[onnx]
+torch
