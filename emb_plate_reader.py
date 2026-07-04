@@ -104,7 +104,7 @@ def _largest_cluster(boxes, gap_factor=2.2):
         groups.setdefault(find(i), []).append(boxes[i])
     kept = max(groups.values(), key=len)
 
-# junk guard: group boxes into rows; keep every multi-box row, but keep a LONE
+    # junk guard: group boxes into rows; keep every multi-box row, but keep a LONE
     # box only if it's char-sized and within the number's x-span (a real stacked
     # row like a single top-row 'A'). Drops debris: wrong-size or off-to-the-side.
     med_h = sorted(b[3] for b in kept)[len(kept) // 2]
