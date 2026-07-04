@@ -16,3 +16,7 @@ pip install -r requirements.txt
 python main.py path/to/plate.png            # red characters (default)
 python main.py path/to/plate.png --color dark --save out.png
 ```
+## For CNN Model Epoch Train
+Run `python train_classifier.py` once to generate `glyph_cnn.pt` (the CNN
+fallback for worn glyphs). Without it, the reader still works using template
+matching alone.
