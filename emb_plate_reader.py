@@ -10,6 +10,21 @@ from glyph_classifier import classify
 CHARS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
 FONT_URL = "https://raw.githubusercontent.com/ZosoV/platesGenerator/master/fonts/FE-FONT.ttf"
 
+import difflib
+PROVINCES = ["KOSHI", "MADHESH", "BAGMATI", "GANDAKI", "LUMBINI", "KARNALI", "SUDURPASHCHIM"]
+
+def snap_province(text, threshold=0.55):
+    """Snap a (possibly mangled) header OCR result to the nearest Nepali province
+    name. Leaves non-province text (junk, NPL/NEP, empty) untouched."""
+    letters = "".join(ch for ch in text.upper() if ch.isalpha())
+    if not letters:
+        return text
+    best, score = text, 0.0
+    for p in PROVINCES:
+        r = difflib.SequenceMatcher(None, letters, p).ratio()
+        if r > score:
+            score, best = r, p
+    return best if score >= threshold else text
 
 def ensure_font(path="assets/FE-FONT.ttf"):
     """Use a committed font if present, otherwise download and validate it."""
@@ -257,7 +272,7 @@ def read_plate(image, tpl, char_color="auto", row_tol=0.10, min_score=0.4, read_
             cv2.rectangle(vis, (hx0 - px, hy0 - py), (hx1 + px, hy1 + py), (200, 120, 0), 2)
             cv2.putText(vis, header, (hx0, max(24, hy0 - 8)),
                         cv2.FONT_HERSHEY_SIMPLEX, 0.9, (200, 120, 0), 2)
-
+    header = snap_province(header)
     plate = (header + " | " if header else "") + " ".join(number_rows)
     return {"header": header, "number": number_rows, "plate": plate}, vis
 

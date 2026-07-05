@@ -3,6 +3,7 @@ import os
 import cv2
 from emb_plate_reader import ensure_font, build_templates, read_plate
 from plate_detector import detect_plates, deskew_plate
+from plate_db import save_reading
 
 
 def main():
@@ -64,6 +65,7 @@ def main():
 
     out_path = os.path.join(out_dir, stem + ".png")
     cv2.imwrite(out_path, annotated)
+    save_reading(args.image, info, out_path)          # log this reading to plates.db
     print(f"\nSaved: {out_path}  (+ straightened plate crop)")
 
 
