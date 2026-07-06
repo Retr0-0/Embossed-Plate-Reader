@@ -82,12 +82,18 @@ def _match(q, tpl):
     return best, best_score
 
 
-def _is_flag(hsv_sub):
-    """A flag/emblem is multicoloured (has BOTH red and blue). A glyph is one colour."""
+def _is_flag(hsv_sub, plate_is_red=False):
+    """Reject the Nepal flag / emblem. Normally it has BOTH red and blue. On low-res
+    crops the blue can wash out, so on a non-red-text plate we also reject a strongly
+    red-dominant blob (no real character is red unless the whole plate is red-text)."""
     red = (cv2.inRange(hsv_sub, (0, 90, 50), (12, 255, 255)) |
            cv2.inRange(hsv_sub, (165, 90, 50), (180, 255, 255))).mean() / 255
     blue = cv2.inRange(hsv_sub, (95, 90, 50), (135, 255, 255)).mean() / 255
-    return red > 0.08 and blue > 0.02
+    if red > 0.08 and blue > 0.02:
+        return True
+    if red > 0.20 and not plate_is_red:      # red blob on a non-red plate = flag
+        return True
+    return False
 
 
 def _detect_color(hsv):
@@ -186,7 +192,7 @@ def read_plate(image, tpl, char_color="auto", row_tol=0.10, min_score=0.4, read_
         x, y, bw, bh, _ = stats[i]
         if bh > 0.85 * H or bw > 0.85 * W or bh < 0.03 * H:
             continue
-        if _is_flag(hsv[y:y + bh, x:x + bw]):
+        if _is_flag(hsv[y:y + bh, x:x + bh], plate_is_red=(char_color == "red")):
             continue
         comps.append((x, y, bw, bh))
     glyphs = [b for b in comps if b[3] > 0.12 * H and 0.12 < b[2] / b[3] < 1.3]
@@ -209,14 +215,16 @@ def read_plate(image, tpl, char_color="auto", row_tol=0.10, min_score=0.4, read_
     for (x, y, bw, bh) in main:
         q = _norm(cv2.bitwise_not(mask[y:y + bh, x:x + bw]))
         ch, sc = _match(q, tpl)
-        if sc < 0.55:                      # template unsure -> CNN (better on worn glyphs)
+        if sc < 0.35:                      # template says "not a character" -> junk, reject
+            continue                        # (don't let the CNN rescue a screw/rock/hole)
+        if sc < 0.55:                      # template unsure but plausible -> CNN for worn glyphs
             cnn = classify(q)
             if cnn is not None:
                 ch, sc = cnn
         if sc >= min_score:
-            kept.append((x, y, bw, bh, ch))
-    if not kept:
-        return {"header": "", "number": [], "plate": ""}, img
+            kept.append((x, y, bw, bh, ch))    
+        if not kept:
+            return {"header": "", "number": [], "plate": ""}, img
     main = [(x, y, bw, bh) for (x, y, bw, bh, _) in kept]
     char_of = {b[:4]: b[4] for b in kept}
 
