@@ -4,12 +4,11 @@ missing, classify() returns None and the caller keeps template matching."""
 import cv2
 import numpy as np
 
-CHARS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
-SIZE = 40
+CHARS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789?" 
 MODEL_PATH = "glyph_cnn.pt"
 _net = None
 _failed = False
-
+SIZE = 40
 
 def _build_net():
     import torch.nn as nn
@@ -22,7 +21,7 @@ def _build_net():
             self.c2 = nn.Conv2d(16, 32, 3, padding=1)
             self.c3 = nn.Conv2d(32, 64, 3, padding=1)
             self.fc1 = nn.Linear(64 * 5 * 5, 128)
-            self.fc2 = nn.Linear(128, 36)
+            self.fc2 = nn.Linear(128, 37)
             self.drop = nn.Dropout(0.3)
 
         def forward(self, x):
@@ -76,4 +75,6 @@ def classify(q):
     with torch.no_grad():
         p = Fn.softmax(net(x), 1)[0]
     i = int(p.argmax())
+    if CHARS[i] == "?":
+        return None          # model says "not a character" -> caller drops it
     return CHARS[i], float(p[i])

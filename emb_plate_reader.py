@@ -265,6 +265,7 @@ def read_plate(image, tpl, char_color="auto", row_tol=0.10, min_score=0.4, read_
         mx1 = max(b[0] + b[2] for b in main)
         hc = [b for b in comps if b[1] + b[3] <= top and b[3] < 0.55 * max_h
               and b[0] >= mx0 - 30 and b[0] + b[2] <= mx1 + 30]
+        hc = _largest_cluster(hc)          # drop stray screws/holes that stretch the header crop
         if hc:
             hx0 = min(b[0] for b in hc); hy0 = min(b[1] for b in hc)
             hx1 = max(b[0] + b[2] for b in hc); hy1 = max(b[1] + b[3] for b in hc)
